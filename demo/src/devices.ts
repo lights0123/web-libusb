@@ -113,7 +113,7 @@ class Devices extends Vue {
 	async runQueue(dev: string) {
 		const device = this.devices[dev];
 		if (!device?.queue || !device.worker || device.running) return;
-		const {rpc} = device.worker;
+		const { rpc } = device.worker;
 		this.$set(device, 'running', true);
 		// eslint-disable-next-line no-constant-condition
 		while (true) {
@@ -170,6 +170,12 @@ class Devices extends Vue {
 				productId: PID_CX2,
 			}],
 		});
+		navigator.usb.ondisconnect = e => {
+			const [key] = Object.entries(this.devices).find(([_, { device }]) => device === e.device) || [];
+			if (key) {
+				this.$delete(this.devices, key);
+			}
+		};
 		this.$set(this.devices, queueId++, {
 			device,
 			name: device.productName,
@@ -188,19 +194,19 @@ class Devices extends Vue {
 		const rpc = new RpcProvider((message, transfer: any) => worker.postMessage(message, transfer));
 		worker.rpc = rpc;
 		worker.onmessage = ({ data }) => {
-			if('usbCmd' in data) return compat.processCmd(data);
+			if ('usbCmd' in data) return compat.processCmd(data);
 			rpc.dispatch(data);
 		}
 		this.$set(this.devices[dev], 'worker', worker as WorkerExt);
 
-		rpc.rpc('init', {id, sab, vid: device.vendorId, pid: device.productId});
+		rpc.rpc('init', { id, sab, vid: device.vendorId, pid: device.productId });
 		await this.update(dev);
 	}
 
 	async close(dev: string) {
 		const device = this.devices[dev];
 		device.worker?.terminate();
-		await device.device.close();
+		device.device.close();
 		this.$delete(this.devices, dev);
 	}
 
@@ -211,7 +217,7 @@ class Devices extends Vue {
 
 	async listDir(dev: string, path: string) {
 		const worker = this.devices[dev].worker;
-		if(!worker) return [];
+		if (!worker) return [];
 		return await listDir(worker.rpc, path);
 	}
 
@@ -237,9 +243,11 @@ class Devices extends Vue {
 	}
 
 	async delete(dev: string, files: FileInfo[]) {
+		const rpc = this.devices[dev].worker?.rpc;
+		if (!rpc) return;
 		const toDelete: FileInfo[] = [];
 		for (const file of files) {
-			toDelete.push(...await listAll(dev, file));
+			toDelete.push(...await listAll(rpc, file));
 		}
 		for (const file of toDelete) {
 			this.addToQueue(dev, { action: file.isDir ? 'deleteDir' : 'deleteFile', path: file.path });

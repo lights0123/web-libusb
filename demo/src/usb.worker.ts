@@ -1,13 +1,57 @@
+import { RpcProvider } from 'worker-rpc';
+
 console.log('worker!');
 const ctx: Worker = self as any;
-let hasInit = false;
-let int32Array;
-ctx.onmessage = message => {
-	if (hasInit) return;
-	hasInit = true;
-	import('../../web-link/pkg').then(module => {
-		console.log(message.data[1]);
-		const calc = new module.Calculator(message.data[0], 0, 0, new Int32Array(message.data[1]));
-		console.log(calc.list_dir('/'));
-	});
-};
+const module = import('../../web-link/pkg');
+let calc: Calculator | undefined;
+const rpcProvider = new RpcProvider(
+	(message, transfer: any) => ctx.postMessage(message, transfer)
+);
+ctx.onmessage = e => rpcProvider.dispatch(e.data);
+
+type SinglePath = { path: string };
+
+rpcProvider.registerRpcHandler('init', async ({ id, sab, vid, pid }) => {
+	if (calc) calc.free();
+	calc = new (await module).Calculator(id, vid, pid, new Int32Array(sab));
+});
+
+rpcProvider.registerRpcHandler('updateDevice', () => {
+	return calc?.update();
+});
+
+rpcProvider.registerRpcHandler('downloadFile', ({ path, dest }) => {
+
+});
+
+rpcProvider.registerRpcHandler('uploadFile', ({ path, src }) => {
+
+});
+
+rpcProvider.registerRpcHandler('uploadOs', ({ src }) => {
+
+});
+
+rpcProvider.registerRpcHandler<SinglePath>('deleteFile', ({ path }) => {
+	calc?.delete_file(path);
+});
+
+rpcProvider.registerRpcHandler<SinglePath>('deleteDir', ({ path }) => {
+	calc?.delete_dir(path);
+});
+
+rpcProvider.registerRpcHandler<SinglePath>('createDir', ({ path }) => {
+	calc?.create_dir(path);
+});
+
+rpcProvider.registerRpcHandler('move', ({ src, dest }) => {
+	calc?.move_file(src, dest);
+});
+
+rpcProvider.registerRpcHandler('copy', ({ src, dest }) => {
+	calc?.copy_file(src, dest);
+});
+
+rpcProvider.registerRpcHandler<SinglePath>('listDir', ({ path }) => {
+	return calc?.list_dir(path);
+});
