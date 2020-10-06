@@ -1,4 +1,4 @@
-use std::os::raw::{c_char, c_int, c_void, c_uchar, c_uint};
+use std::os::raw::{c_char, c_int, c_uchar, c_uint, c_void};
 use std::ptr::null_mut;
 
 pub type libusb_hotplug_callback_handle = c_int;
@@ -18,8 +18,8 @@ pub struct libusb_version {
     pub describe: *const c_char,
 }
 
-unsafe impl Send for libusb_version{}
-unsafe impl Sync for libusb_version{}
+unsafe impl Send for libusb_version {}
+unsafe impl Sync for libusb_version {}
 
 #[no_mangle]
 pub unsafe extern "C" fn libusb_get_version() -> *const libusb_version {
@@ -43,7 +43,10 @@ pub unsafe extern "C" fn libusb_has_capability(capability: u32) -> c_int {
 
 extern "C" {
     pub fn libusb_set_option(ctx: *mut crate::libusb_context, option: u32, ...) -> c_int;
-    pub fn libusb_open(dev: *const crate::libusb_device, handle: *mut *mut crate::libusb_device_handle) -> c_int;
+    pub fn libusb_open(
+        dev: *const crate::libusb_device,
+        handle: *mut *mut crate::libusb_device_handle,
+    ) -> c_int;
     pub fn libusb_open_device_with_vid_pid(
         context: *mut crate::libusb_context,
         vendor_id: u16,
@@ -92,8 +95,12 @@ extern "C" {
     ) -> c_int;
     pub fn libusb_get_device_address(dev: *const crate::libusb_device) -> u8;
     pub fn libusb_get_device_speed(dev: *const crate::libusb_device) -> c_int;
-    pub fn libusb_get_max_packet_size(dev: *const crate::libusb_device, endpoint: c_uchar) -> c_int;
-    pub fn libusb_get_max_iso_packet_size(dev: *const crate::libusb_device, endpoint: c_uchar) -> c_int;
+    pub fn libusb_get_max_packet_size(dev: *const crate::libusb_device, endpoint: c_uchar)
+        -> c_int;
+    pub fn libusb_get_max_iso_packet_size(
+        dev: *const crate::libusb_device,
+        endpoint: c_uchar,
+    ) -> c_int;
     pub fn libusb_get_configuration(
         dev_handle: *mut crate::libusb_device_handle,
         config: *mut c_int,
@@ -116,7 +123,10 @@ extern "C" {
         length: u16,
         timeout: c_uint,
     ) -> c_int;
-    pub fn libusb_clear_halt(dev_handle: *mut crate::libusb_device_handle, endpoint: c_uchar) -> c_int;
+    pub fn libusb_clear_halt(
+        dev_handle: *mut crate::libusb_device_handle,
+        endpoint: c_uchar,
+    ) -> c_int;
     pub fn libusb_set_auto_detach_kernel_driver(
         dev_handle: *mut crate::libusb_device_handle,
         enable: c_int,
@@ -152,11 +162,7 @@ extern "C" {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn memchr(
-    mut ptr: *const c_void,
-    value: c_int,
-    num: usize
-) -> *mut c_void {
+pub unsafe extern "C" fn memchr(mut ptr: *const c_void, value: c_int, num: usize) -> *mut c_void {
     for _ in 0..num {
         if *(ptr as *const u8) == value as u8 {
             return ptr as *mut c_void;
@@ -170,20 +176,16 @@ pub unsafe extern "C" fn memchr(
 pub unsafe extern "C" fn strncpy(
     mut dst: *mut c_char,
     mut src: *const c_char,
-    n: usize
+    n: usize,
 ) -> *mut c_char {
-    let mut has_reached_null = false;
-    for _ in 0..n {
-        if has_reached_null {
-            *dst = 0;
-        } else {
-            *dst = *src;
-            if *src == 0 {
-                has_reached_null = true;
-            }
-        }
-        dst = dst.add(1);
-        src = src.add(1);
+    let mut i = 0;
+    while i < n && *src.add(i) != 0 {
+        *dst.add(i) = *src.add(i);
+        i += 1;
+    }
+    while i < n {
+        *dst.add(i) = 0;
+        i += 1;
     }
     dst
 }

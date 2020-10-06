@@ -8,8 +8,9 @@ const VID = 0x0451;
 const PID = 0xe012;
 /// The USB vendor ID used by all CX II calculators.
 const PID_CX2 = 0xe022;
+async function promisified(...a: any[]): Promise<any> {
 
-export type DevId = { address: number; busNumber: number };
+}
 
 export type Version = { major: number; minor: number; patch: number; build: number };
 export type Lcd = { width: number; height: number; bpp: number; sample_mode: number };

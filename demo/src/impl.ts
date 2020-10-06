@@ -10,14 +10,14 @@ export enum UsbError {
 	Unknown = 'Unknown',
 }
 
-const exceptionMap = {
+const exceptionMap = DOMException ? {
 	[DOMException.NOT_FOUND_ERR]: UsbError.NotFound,
 	[DOMException.SECURITY_ERR]: UsbError.Security,
 	[DOMException.NETWORK_ERR]: UsbError.Network,
 	[DOMException.ABORT_ERR]: UsbError.Abort,
 	[DOMException.INVALID_STATE_ERR]: UsbError.InvalidState,
 	[DOMException.INVALID_ACCESS_ERR]: UsbError.InvalidAccess,
-};
+} : {};
 
 export type Cmd =
 	| ({ usbCmd: 'bulkTransferOut' } & BulkTransferOut)

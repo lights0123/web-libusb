@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::os::raw::{c_uchar, c_int};
+use std::os::raw::{c_int, c_uchar};
 
 #[repr(C)]
 #[derive(Debug)]

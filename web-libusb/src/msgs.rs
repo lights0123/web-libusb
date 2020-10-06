@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
-use js_sys::{Atomics, Uint8Array, Int32Array};
-use std::os::raw::{c_int};
 use crate::global;
+use js_sys::{Atomics, Int32Array, Uint8Array};
+use serde::{Deserialize, Serialize};
+use std::os::raw::c_int;
 use wasm_bindgen::prelude::*;
 
 #[derive(Debug, Deserialize)]
@@ -198,7 +198,6 @@ impl<'reply, 'cmd> Message<'reply, 'cmd> for ActiveConfigDescriptor {
     type Reply = ActiveConfigDescriptorReply;
 }
 
-
 pub trait Message<'reply, 'cmd>: Into<Cmd<'cmd>> + Serialize {
     type Reply: Deserialize<'reply>;
 }
@@ -209,7 +208,11 @@ extern "C" {
     fn log(s: &str);
 }
 
-pub fn call<'reply, 'cmd, T: Message<'reply, 'cmd>>(arr: &Int32Array, msg: T, buf: &'reply mut [u8]) -> Result<T::Reply, rmp_serde::decode::Error> {
+pub fn call<'reply, 'cmd, T: Message<'reply, 'cmd>>(
+    arr: &Int32Array,
+    msg: T,
+    buf: &'reply mut [u8],
+) -> Result<T::Reply, rmp_serde::decode::Error> {
     let value = serde_wasm_bindgen::to_value(&Into::<Cmd>::into(msg)).unwrap();
     let _ = global().post_message(&value);
     let _ = Atomics::wait(arr, 0, 0);
@@ -220,6 +223,9 @@ pub fn call<'reply, 'cmd, T: Message<'reply, 'cmd>>(arr: &Int32Array, msg: T, bu
     js_buf.copy_to(buf);
     match rmp_serde::from_read_ref(&buf[..]) {
         Ok(v) => Ok(v),
-        Err(e) => Err({log(&format!("{}", e));e}),
+        Err(e) => Err({
+            log(&format!("{}", e));
+            e
+        }),
     }
 }

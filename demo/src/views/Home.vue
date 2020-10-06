@@ -10,7 +10,7 @@
 import { Component, Vue } from 'vue-property-decorator';
 import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
 import Worker from 'worker-loader!@/usb.worker.ts';
-import Devices from '@/impl';
+import '@/devices';
 
 @Component({
   components: {
@@ -22,16 +22,8 @@ import Devices from '@/impl';
 })
 export default class Home extends Vue {
   async go() {
-    const dev = await navigator.usb.requestDevice({filters:[{productId: 0xe012, vendorId: 0x0451}]});
-    await dev.open();
-    const worker = new Worker();
-    const sab = new SharedArrayBuffer(2000);
-    const devices = new Devices(sab);
-    const id = devices.addDevice(dev);
-    worker.postMessage([id, sab]);
-    worker.onmessage = message => {
-      devices.processCmd(message.data);
-    };
+    await this.$devices.enumerate();
+    await this.$devices.open(Object.keys(this.$devices.devices)[0]);
   }
 }
 </script>

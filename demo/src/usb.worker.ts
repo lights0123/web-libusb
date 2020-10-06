@@ -1,8 +1,9 @@
 import { RpcProvider } from 'worker-rpc';
+import type { Calculator } from '../../web-libnspire/pkg';
 
 console.log('worker!');
 const ctx: Worker = self as any;
-const module = import('../../web-link/pkg');
+const module = import('../../web-libnspire/pkg');
 let calc: Calculator | undefined;
 const rpcProvider = new RpcProvider(
 	(message, transfer: any) => ctx.postMessage(message, transfer)

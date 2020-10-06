@@ -10,6 +10,7 @@ use rusb::GlobalContext;
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use wasm_bindgen::__rt::std::ffi::CStr;
 
 #[wasm_bindgen(start)]
 pub fn set_panic_hook() {
@@ -31,11 +32,13 @@ extern "C" {
 
 #[no_mangle]
 pub unsafe extern "C" fn printf(format: *const u8, mut args: ...) -> c_int {
+    log(&CStr::from_ptr(format as _).to_string_lossy());
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn puts(s: *const u8) -> c_int {
+    log(&CStr::from_ptr(s as _).to_string_lossy());
     0
 }
 
@@ -64,7 +67,6 @@ pub struct FileInfo {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ProgressUpdate {
-    #[serde(flatten)]
     pub remaining: u32,
     pub total: u32,
 }
