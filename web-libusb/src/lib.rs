@@ -140,7 +140,9 @@ pub unsafe extern "C" fn libusb_bulk_transfer(
         }) {
             Ok(reply) => match reply.0 {
                 Ok(size) => {
-                    *transferred = size as c_int;
+                    if !transferred.is_null() {
+                        *transferred = size as c_int;
+                    }
                     LIBUSB_SUCCESS
                 }
                 Err(e) => e.into(),
@@ -161,8 +163,12 @@ pub unsafe extern "C" fn libusb_bulk_transfer(
             ) {
                 Ok(reply) => match reply.0 {
                     Ok(buf) => {
-                        slice::from_raw_parts_mut(data, (buf.0).len().min(length as usize))
+                        let len = (buf.0).len().min(length as usize);
+                        slice::from_raw_parts_mut(data, len)
                             .copy_from_slice(buf.0);
+                        if !transferred.is_null() {
+                            *transferred = len as c_int;
+                        }
                         LIBUSB_SUCCESS
                     }
                     Err(e) => e.into(),
@@ -343,11 +349,7 @@ pub unsafe extern "C" fn libusb_get_active_config_descriptor(
         Err(_) => LIBUSB_ERROR_OTHER,
     }
 }
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
+
 #[no_mangle]
 pub unsafe extern "C" fn libusb_free_config_descriptor(
     config_ptr: *const libusb_config_descriptor,
