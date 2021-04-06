@@ -77,6 +77,7 @@ extern "C" {
         context: *mut crate::libusb_context,
         completed: *mut c_int,
     ) -> c_int;
+    #[allow(dead_code)]
     pub fn libusb_get_device_descriptor(
         dev: *const crate::libusb_device,
         desc: *mut crate::libusb_device_descriptor,
@@ -159,6 +160,7 @@ extern "C" {
         list: *mut *const *mut crate::libusb_device,
     ) -> isize;
     pub fn libusb_free_device_list(list: *const *mut crate::libusb_device, unref_devices: c_int);
+    pub fn libusb_get_parent(dev: *mut crate::libusb_device) -> *mut crate::libusb_device;
 }
 
 #[no_mangle]
@@ -173,11 +175,7 @@ pub unsafe extern "C" fn memchr(mut ptr: *const c_void, value: c_int, num: usize
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn strncpy(
-    mut dst: *mut c_char,
-    mut src: *const c_char,
-    n: usize,
-) -> *mut c_char {
+pub unsafe extern "C" fn strncpy(dst: *mut c_char, src: *const c_char, n: usize) -> *mut c_char {
     let mut i = 0;
     while i < n && *src.add(i) != 0 {
         *dst.add(i) = *src.add(i);

@@ -7,7 +7,6 @@ use std::os::raw::{c_int, c_uint, c_void};
 use std::ptr::null_mut;
 use std::{mem, slice};
 
-use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::DedicatedWorkerGlobalScope;
 
@@ -122,7 +121,7 @@ pub unsafe extern "C" fn libusb_bulk_transfer(
     data: *mut u8,
     length: c_int,
     transferred: *mut c_int,
-    timeout: c_uint,
+    _timeout: c_uint,
 ) -> c_int {
     let device = (*(*handle).device).id;
     if endpoint & LIBUSB_ENDPOINT_DIR_MASK == LIBUSB_ENDPOINT_OUT {
@@ -164,8 +163,7 @@ pub unsafe extern "C" fn libusb_bulk_transfer(
                 Ok(reply) => match reply.0 {
                     Ok(buf) => {
                         let len = (buf.0).len().min(length as usize);
-                        slice::from_raw_parts_mut(data, len)
-                            .copy_from_slice(buf.0);
+                        slice::from_raw_parts_mut(data, len).copy_from_slice(buf.0);
                         if !transferred.is_null() {
                             *transferred = len as c_int;
                         }

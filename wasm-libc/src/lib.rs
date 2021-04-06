@@ -1,5 +1,4 @@
-#[allow(non_camel_case_types)]
-
+#![allow(non_camel_case_types)]
 pub use libc2::*;
 
 #[cfg(target_arch = "wasm32")]

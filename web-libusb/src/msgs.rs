@@ -1,4 +1,4 @@
-use crate::global;
+use crate::{constants, global};
 use js_sys::{Atomics, Int32Array, Uint8Array};
 use serde::{Deserialize, Serialize};
 use std::os::raw::c_int;
@@ -16,8 +16,16 @@ pub enum Error {
 }
 
 impl From<Error> for c_int {
-    fn from(_: Error) -> Self {
-        unimplemented!()
+    fn from(err: Error) -> Self {
+        match err {
+            Error::NotFound => constants::LIBUSB_ERROR_NOT_FOUND,
+            Error::Security => constants::LIBUSB_ERROR_ACCESS,
+            Error::Network => constants::LIBUSB_ERROR_IO,
+            Error::Abort => constants::LIBUSB_ERROR_INTERRUPTED,
+            Error::InvalidState => constants::LIBUSB_ERROR_OTHER,
+            Error::InvalidAccess => constants::LIBUSB_ERROR_ACCESS,
+            Error::Unknown => constants::LIBUSB_ERROR_OTHER,
+        }
     }
 }
 

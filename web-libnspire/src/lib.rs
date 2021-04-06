@@ -1,16 +1,15 @@
 #![feature(c_variadic)]
 
 use std::os::raw::c_int;
-use std::ptr::{null_mut, NonNull};
+use std::ptr::NonNull;
 
 use js_sys::{JsString, Uint8Array};
 use libnspire::dir::EntryType;
-use libnspire::{Error, Handle};
 use rusb::GlobalContext;
 use serde::Serialize;
+use std::ffi::CStr;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use wasm_bindgen::__rt::std::ffi::CStr;
 
 #[wasm_bindgen(start)]
 pub fn set_panic_hook() {
@@ -31,7 +30,7 @@ extern "C" {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn printf(format: *const u8, mut args: ...) -> c_int {
+pub unsafe extern "C" fn printf(format: *const u8, mut _args: ...) -> c_int {
     log(&CStr::from_ptr(format as _).to_string_lossy());
     0
 }
@@ -43,7 +42,7 @@ pub unsafe extern "C" fn puts(s: *const u8) -> c_int {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn gettimeofday(tp: *mut libusb1_sys::timeval, tz: *mut c_int) -> c_int {
+pub unsafe extern "C" fn gettimeofday(tp: *mut libusb1_sys::timeval, _tz: *mut c_int) -> c_int {
     *tp = libusb1_sys::timeval {
         tv_sec: (js_sys::Date::now() / 1000.) as _,
         tv_usec: 0,
@@ -83,7 +82,7 @@ fn progress_sender(total: u32) -> impl FnMut(usize) {
                 total,
             };
             let value = serde_wasm_bindgen::to_value(&update).unwrap();
-            global().post_message(&value);
+            global().post_message(&value).unwrap();
         }
         i += 1;
     }

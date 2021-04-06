@@ -3,7 +3,7 @@ name = "web-libnspire"
 description = "libnspire with WASM"
 repository = "https://github.com/lights0123/web-libusb"
 license = "GPL-3.0"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["lights0123 <developer@lights0123.com>"]
 edition = "2018"
 
